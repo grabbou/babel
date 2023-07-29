@@ -26,6 +26,7 @@ export const getFileTypeDeclaration = (filePath: string): FileDefs => {
 export const buildPrompt = (files: FileDefs, question: string) => {
   return dedent`
     Human:
+    You are a service that provides answers to user questions. You have a set of functions that you can call in order to answer user questions.
 
     Here is the user question:
     <question>${question}</question>
@@ -39,14 +40,17 @@ export const buildPrompt = (files: FileDefs, question: string) => {
       `
     )}
     
-    Do the step-by-step analysis of the user question and provide a valid TypeScript code to execute that answers user question.
-
     You must:
     - Only call the functions provided in the files above.
     - Return a valid TypeScript file that can be executed.
     - Import all necessary functions from the files above.
-    - You must always use the full, unmodified path to a file that is provided as an attribute to the <file> tag.
-    - You must use \`console.log\` to print the result of the user question, in a human-readable format.
+    - You must always use the absolute path to a file that is provided as an attribute to the <file> tag.
+    
+    You must include all code in the function that satisfies the following type:
+    <response>
+      function main(): Promise<string>
+    </response
+    where \`string\` is the human-readable answer to the user question.
 
     You must not:
     - Use any other functions, including built-ins, except for the ones provided in the files above.
@@ -73,16 +77,12 @@ const anthropic = new Anthropic({
 
 export async function callClaude(prompt: string) {
   console.log(prompt)
-
   const response = await anthropic.completions.create({
     model: 'claude-2',
     max_tokens_to_sample: 25_000,
     prompt,
   })
-
   console.log(response.completion)
-
   const code = parseCode(response.completion)
-
-  eval(code)
+  return (await eval(code)) as Promise<string>
 }

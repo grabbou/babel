@@ -1,14 +1,15 @@
 import 'dotenv/config'
 
-import { join } from 'path'
+import * as path from 'path'
 
-import { buildPrompt, callClaude, getFileTypeDeclaration } from '../../src/lib'
+import run from '../../src'
 
-const typeDefs = getFileTypeDeclaration(join(__dirname, './functions.ts'))
-
-const prompt = buildPrompt(typeDefs, 'What is the temperature right now?')
-
+// Main entry point
 ;(async () => {
-  const result = await callClaude(prompt)
-  console.log(result)
+  const response = await run({
+    functions: path.join(__dirname, './functions.ts'),
+    prompt: 'What is the temperature right now?',
+  })
+
+  console.log(response)
 })()

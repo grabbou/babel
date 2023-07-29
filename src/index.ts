@@ -1,12 +1,15 @@
-import * as dotenv from 'dotenv'
-import { readFileSync } from 'fs'
-import * as path from 'path'
-import * as ts from 'typescript'
+import { buildPrompt, callClaude, getFileTypeDeclaration } from './lib'
 
-dotenv.config()
+type Config = {
+  functions: string
+  prompt: string
+}
 
-const source = readFileSync(path.join(__dirname, './prompt.txt'), 'utf-8')
+export default async function run(config: Config) {
+  const typeDefs = getFileTypeDeclaration(config.functions)
+  const prompt = buildPrompt(typeDefs, config.prompt)
 
-const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } })
+  const result = await callClaude(prompt)
 
-eval(code.outputText)
+  return result
+}

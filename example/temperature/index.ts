@@ -9,6 +9,7 @@ import run from '../../src'
   const response = await run({
     functions: path.join(__dirname, './functions.ts'),
     prompt: 'What is the temperature right now?',
+    debug: true,
     apiKey: process.env.CLAUDE_KEY as string,
   })
 

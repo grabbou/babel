@@ -43,14 +43,18 @@ export const buildPrompt = (files: FileDefs, question: string) => {
     You must:
     - Only call the functions provided in the files above.
     - Return a valid TypeScript file that can be executed.
-    - Import all necessary functions from the files above.
-    - You must always use the absolute path to a file that is provided as an attribute to the <file> tag.
+    - Import all necessary functions from the files above using absolute paths.
+
+    Each <file> tag as a "path" attribute that has an absolute path to a file location. When importing necessary functions,
+    you must use exactly that absolute path. You must not use relative paths, as you do not know where your file is executed.
     
     You must include all code in the function that satisfies the following type:
     <response>
       function main(): Promise<string>
     </response
     where \`string\` is the human-readable answer to the user question.
+
+    You must execute the \`main\` function as a last statement in the file.
 
     You must not:
     - Use any other functions, including built-ins, except for the ones provided in the files above.
@@ -67,22 +71,24 @@ export const buildPrompt = (files: FileDefs, question: string) => {
   `
 }
 
-const parseCode = (code: string) => {
-  return ts.transpileModule(code, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText
+export const parseCode = (code: string) => {
+  return ts.transpileModule(code, { compilerOptions: { module: ts.ModuleKind.CommonJS } })
 }
 
-const anthropic = new Anthropic({
-  apiKey: process.env.CLAUDE_KEY as string,
-})
+export const runCode = async (code: ts.TranspileOutput) => {
+  return (await eval(code.outputText)) as Promise<string>
+}
 
-export async function callClaude(prompt: string) {
-  console.log(prompt)
+export async function callClaude(prompt: string, apiKey: string) {
+  const anthropic = new Anthropic({
+    apiKey,
+  })
+
   const response = await anthropic.completions.create({
     model: 'claude-2',
     max_tokens_to_sample: 25_000,
     prompt,
   })
-  console.log(response.completion)
-  const code = parseCode(response.completion)
-  return (await eval(code)) as Promise<string>
+
+  return response.completion
 }

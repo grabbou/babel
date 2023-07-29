@@ -1,10 +1,10 @@
 import { getCurrentLocation, getTemperature, getTimeToCharge } from './file.ts'
 
 const main = async () => {
-  const currentLocation = await getCurrentLocation(); 
-  const currentTemp = await getTemperature(currentLocation);
+  const { lat, long } = await getCurrentLocation(); 
+  const currentTemp = await getTemperature(lat, long);
 
-  console.log(`It is currently ${currentTemp} degrees in ${currentLocation}`);
+  console.log(`It is currently ${currentTemp} degrees in ${lat} and ${long}`);
 }
 
 main()

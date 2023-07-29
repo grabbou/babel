@@ -1,4 +1,4 @@
-export const getCurrentLocation = async () => {
+export async function getCurrentLocation() {
   return 'San Francisco'
 }
 

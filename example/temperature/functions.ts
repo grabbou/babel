@@ -1,15 +1,23 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const getCurrentLocation = async (location: string) => {
-  // TODO detect location automatically
+type Location = {
+  lat: number
+  lng: number
+}
+
+export const getCurrentLocation = (): Location => {
   return {
     lat: 37.773972,
-    long: -122.431297,
+    lng: -122.431297,
   }
 }
 
-export const getTemperature = async (lat: number, long: number) => {
+export enum Unit {
+  Celsius = 'metric',
+  Fahrenheit = 'imperial',
+}
+
+export const getTemperature = async (location: Location, unit: Unit = Unit.Fahrenheit) => {
   const res = await fetch(
-    `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${long}&appid=${process.env.OPEN_WEATHER_API_KEY}`
+    `https://api.openweathermap.org/data/3.0/onecall?lat=${location.lat}&lon=${location.lng}&units=${unit}&appid=${process.env.OPEN_WEATHER_API_KEY}`
   )
   const data = await res.json()
   if (!data?.current?.temp) {

@@ -46,6 +46,7 @@ export const buildPrompt = (files: FileDefs, question: string) => {
     - Return a valid TypeScript file that can be executed.
     - Import all necessary functions from the files above.
     - You must always use the full, unmodified path to a file that is provided as an attribute to the <file> tag.
+    - You must use \`console.log\` to print the result of the user question, in a human-readable format.
 
     You must not:
     - Use any other functions, including built-ins, except for the ones provided in the files above.

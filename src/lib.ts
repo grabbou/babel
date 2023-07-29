@@ -71,18 +71,21 @@ const parseCode = (code: string) => {
   return ts.transpileModule(code, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText
 }
 
-const anthropic = new Anthropic({
-  apiKey: process.env.CLAUDE_KEY as string,
-})
+export async function callClaude(prompt: string, apiKey: string) {
+  const anthropic = new Anthropic({
+    apiKey,
+  })
 
-export async function callClaude(prompt: string) {
   console.log(prompt)
+
   const response = await anthropic.completions.create({
     model: 'claude-2',
     max_tokens_to_sample: 25_000,
     prompt,
   })
+
   console.log(response.completion)
+
   const code = parseCode(response.completion)
   return (await eval(code)) as Promise<string>
 }

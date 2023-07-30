@@ -36,7 +36,7 @@ export const buildPrompt = (file: FileDef, task: string) => {
     You must import them using absolute path "${filename}".
     
     If JSDoc is provided for a function, you must use it to understand what the function does.
-    Otherwise, you must use the function type signature (including name and its arguments) to understand what it does.
+    Otherwise, you must use the function type signature (including name and names of the arguments) to augument what it does.
 
     If function has multiple choices and user did not specify which one to use, you must use the first one.
     

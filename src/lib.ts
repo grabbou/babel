@@ -24,118 +24,137 @@ export const buildPrompt = (file: FileDef, task: string) => {
 
   return dedent`
     Human:
-    You have a runtime that contains functions that you use to execute tasks.
-      
-    Your job is to complete the <task>. 
+    You have a runtime that contains functions that perform certain actions. 
 
-    In order to complete a given <task>, you must do the following:
+    Your job is to generate *complete* TypeScript code that will perform the task using only the functions provided in the runtime.
+    
+    In order to complete a given task, you must do the following:
     1. Analyse the task carefully and break it down into separate steps.
     2. For each step, assign a function from the runtime that can perform that step.
-    3. Make sure you have all the necessary functions to complete each step before you start creating the code.
-    4. You must return a valid and complete TypeScript <code> that executes the task, or <error> if you cannot complete the task.
-
-    If <task> is a question and can be completed, the <code> must be eventaully return an answer to that question.
-    If <task> is a command and can be completed, the <code> must be eventaully return a confirmation that the command was executed successfully.
+    3. Make sure you have all the necessary functions to complete each step.
+    
+    If any functionality is missing, you must return a message that explains what is missing instead.
 
     Do not violate the following restrictions:
     1. Never refer to any missing functions or types.
     2. Never declare any additional functions or types.
     3. Never import any libraries, functions or types from other files other than the ones provided to you
     in <functions> tag.
-    4. Never generate <code> if a single function required to complete the <task> is missing. Return <error> instead.
-    5. Never leave any TODOs, stubs or placeholders in the <code>. Your code must be complete and executable.
+    4. Never generate partial, incomplete code or leave TODOs. If any critical functions are missing or the available functions do not fully cover the task, return an error message explaining what is missing instead of any partial code or snippets
 
-    To make sure you understand the task, please provide an example that would violate the 1st restriction, for the following:
+    To make sure you understand the task, please provide *invalid response* that would violate the 1st restriction, for the following:
     <task>Call my lawyer</task>
     <functions></functions>
     
     Assistant:
-    <code>
-      async function main() {
-        await callMyLawyer()
-        return 'I called your lawyer'
-      }
-      main()
-    </code>
-    This example is invalid, because I am using a function \`callMyLawyer\` that is undefined.
-    That function is undefined, because it was not provided in the <functions> tag and I could not import it.
+    <response>
+      <code>
+        async function main() {
+          await callMyLawyer()
+          return 'I called your lawyer'
+        }
+        main()
+      </code>
+    </response>
+    This response is invalid, because I am using a function \`callMyLawyer\` that is undefined.
+    That function is undefined, because it was not provided in the functions tag and I could not import it.
 
-    Human: Thank you. Now, please provide an example that would violate the 2nd restriction, for the following:
+    Human: Thank you. What would be a valid response that does not violate the 1st restriction for the same task?
+
+    Assistant:
+    <response>
+      <error>
+        I cannot complete the task, because I do not have a function \`callMyLawyer\` that supports your request."
+      </error>
+    </response>
+
+    Human: Thank you. Now, please provide an *invalid response* that would violate the 2nd restriction, for the following:
     <task>Call my lawyer</task>
     <functions>
       export declare const call: (phone: string) => Promise<void>
     </functions>
 
     Assistant:
-    <code>
-      import { call } from "/path/to/call.ts"
-      async function main() {
-        const phoneNumber = "+48777111222"
-        await call(phoneNumber)
-        return 'I called your lawyer'
-      }
-      main()
-    </code>
-    The above example is invalid because I created an arbitrary phone number to be able to satisfy the \`call\` function signature.
-    Since I do not have a function to retrieve the phone number for the lawyer, I must return <error> instead.
+    <response>
+      <code>
+        import { call } from "/path/to/call.ts"
+        async function main() {
+          const phoneNumber = "+48777111222"
+          await call(phoneNumber)
+          return 'I called your lawyer'
+        }
+        main()
+      </code>
+    </response>
+    The above response is invalid because I used a random phone number instead of the phone number for the lawyer.
+    
+    Human: Thank you. What would be a valid response that does not violate the 2nd restriction for the same task?
 
-    Human: Thank you. Now, please provide an example that would violate the 3rd restriction, for the following:
+    Assistant:
+    <response>
+      <error>
+        I cannot complete the task, because I do not have a function to retrieve your lawyer phone number. Please provide phone number in the task and try again."
+      </error>
+    </response>
+
+    Human: Thank you. Now, please provide an *invalid response* that violates the 3rd restriction, for the following:
     <task>Call my lawyer</task>
     <functions></functions>
 
     Assistant:
-    <code>
-      import { callMyLawyer } from "/path/to/callMyLawyer.ts"
-      async function main() {
-        await callMyLawyer()
-        return 'I called your lawyer'
-      }
-      main()
-    </code>
-    The above example is invalid because it imports \`callMyLawyer\` from a file that is not available in the runtime.
+    <response>
+      <code>
+        import { callMyLawyer } from "/path/to/callMyLawyer.ts"
+        async function main() {
+          await callMyLawyer()
+          return 'I called your lawyer'
+        }
+        main()
+      </code>
+    </response>
+    The above response is invalid because it imports \`callMyLawyer\` from a file that is not available in the runtime.
     The only file available in the runtime is "${filename}" with functions declared in <functions> tag.
 
-    Human: Thank you. Now, please provide an example that would violate the 4th restriction, for the following:
+    Human: Thank you. What would be a valid response that does not violate the 3rd restriction for the same task?
+
+    Assistant:
+    <response>
+      <error>
+        I cannot complete the task, because I do not have calling capabilities yet. I am still learning. Check soon.
+      </error>
+    </response>
+
+    Human: Thank you. Now, please provide an *invalid response* that violates the 4th restriction, for the following:
     <task>Call my lawyer</task>
     <functions>
       export declare const getPhone: (who: string) => string
     </functions>
 
     Assistant:
-    <code>
-      import { getPhone } from "${filename}"
-      async function main() {
-        const phone = await getPhone("lawyer")
-        return 'I called your lawyer'
-      }
-      main()
-    </code>
-    The above example is invalid because we did not execute the task. We only retrieved the phone number, which was
-    the first step. The second step was to call the lawyer, which we did not do. We did not do it, because we do not
-    have a function to call the lawyer. We should return <error> instead.
+    <response>
+      <code>
+        import { getPhone } from "${filename}"
+        async function main() {
+          const phone = await getPhone("lawyer")
+          // TODO: call the lawyer
+          return 'I got your lawyer phone number but did not call due to missing functionallity'
+        }
+        main()
+      </code>
+    </response>
+    The above response is invalid because I did not completed the task fully. I was only retrieved the phone number, which was
+    the first step. The second step was to call the lawyer, which I did not do due to missing function.
 
-    Human: Thank you. Now, please provide an example that would violate the 5th restriction, for the following:
-    <task>Call my lawyer</task>
-    <functions>
-      export declare const getPhone: (who: string) => string
-    </functions>
-    
+    Human: Thank you. What would be a valid response that does not violate the 4th restriction for the same task?
+
     Assistant:
-    <code>
-      import { getPhone } from "${filename}"
-      async function main() {
-        const phone = await getPhone("lawyer")
-        // TODO: Call the lawyer
-        return 'I called your lawyer'
-      }
-      main()
-    </code>
-    
-    The above example is invalid because I left a TODO in the code instead of completing the task. 
-    I must always return a complete and executable code, otherwise I must return <error> instead.
-    I must never return an incomplete code or a snippet.
+    <response>
+      <error>
+        I cannot complete the task, because I do not have calling capabilities yet. I am still learning. Check soon.
+      </error>
+    </response>
 
-    Human: Please now provide an example that *does not violate* the restrictions, for the following:
+    Human: Thank you. Please now provide a valid response that *does not violate* the restrictions, for the following:
     <task>What day is today?</task>
     <functions>
       export declare const getCurrentMonth: () => number
@@ -143,14 +162,16 @@ export const buildPrompt = (file: FileDef, task: string) => {
     </functions>
 
     Assistant:
-    <code>
-      import { getCurrentDate } from "${filename}"
-      async function main() {
-        const day = getCurrentDate().getDay()
-        return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day]
-      }
-      main()
-    </code>
+    <response>
+      <code>
+        import { getCurrentDate } from "${filename}"
+        async function main() {
+          const day = getCurrentDate().getDay()
+          return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day]
+        }
+        main()
+      </code>
+    </response>
 
     Human: Please now provide an advanced example that *does not violate* the restrictions, for the following:
     <task>Check the current date and send to claude@anthropic.com</task>
@@ -160,16 +181,17 @@ export const buildPrompt = (file: FileDef, task: string) => {
     </functions>
     
     Assistant:
-    <code>
-      import { getCurrentDate, sendEmail } from "${filename}"
-      async function main() {
-        const date = getCurrentDate()
-        await sendEmail('claude@anthropic.com', 'Current date', date.toString())
-        return 'Email sent successfully.'
-      }
-      main()
-    </code>
-    In this example, I broken down a complex task into multiple steps that I can execute using the available functions.
+    <response>
+      <code>
+        import { getCurrentDate, sendEmail } from "${filename}"
+        async function main() {
+          const date = getCurrentDate()
+          await sendEmail('claude@anthropic.com', 'Current date', date.toString())
+          return 'Email sent successfully.'
+        }
+        main()
+      </code>
+    </response>
 
     Human: Please now provide an example that *does not violate* the restrictions, for the following:
     <task>Check the current date and send to claude@anthropic.com</task>
@@ -179,11 +201,11 @@ export const buildPrompt = (file: FileDef, task: string) => {
     </functions>
 
     Assistant:
-    <error>
-      I cannot complete the task, because I do not have a function \`sendEmail\` that supports your request.
-    </error>
-    In this example, while a function \`sendEmail\` is available, it does not support the request, because it does not
-    accept the \`to\` argument.
+    <response>
+      <error>
+        I cannot complete the task, because I do not have a function \`sendEmail\` that supports your request.|
+      </error>
+    </response>
 
     Human: Great. You have full and complete understanding of the task. Let's get started.
 
@@ -196,6 +218,7 @@ export const buildPrompt = (file: FileDef, task: string) => {
     </functions>
   
     Assistant:
+    <response>
   `
 }
 

@@ -11,6 +11,7 @@ export const getLocationForCityName = (city: string): Location => {
   }
 }
 
+/** Returns temperature in Farenheit */
 export const getTemperature = async (location: Location) => {
   const res = await fetch(
     `https://api.openweathermap.org/data/3.0/onecall?lat=${location.lat}&lon=${location.lng}&units=imperial&appid=${process.env.OPEN_WEATHER_API_KEY}`

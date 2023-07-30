@@ -36,7 +36,7 @@ export const buildPrompt = (file: FileDef, task: string) => {
     You must import them using absolute path "${filename}".
     
     If JSDoc is provided for a function, you must use it to understand what the function does.
-    Otherwise, you must use the function type signature (including name and names of the arguments) to augument what it does.
+    Otherwise, you must use the function type signature (including name and names of the arguments) to understand what it does.
 
     If function has multiple choices and user did not specify which one to use, you must use the first one.
     
@@ -44,10 +44,12 @@ export const buildPrompt = (file: FileDef, task: string) => {
     1. Analyse the task carefully and break it down into separate steps.
     2. For each step, import a function from the "${filename}" that can fully satisfy that step.
     3. Generate a valid TypeScript code that completes the entire task using functions provided.
-    
+
     Never import any libraries, functions or types from other files other than the ones provided to you in <functions> tag.
     
-    If any functions are missing or available functions do not fully satisfy a given step, you must mark that step as a TODO.
+    Never implement any missing functions yourself. If any functions are missing or available functions do not fully satisfy
+    a given step, you must mark that step as a TODO.
+    
     If there are any TODOs in the code, you must include a detailed <error> tag that explains what functionalities are missing.
 
     If your task is a question, you must return an answer to that question.

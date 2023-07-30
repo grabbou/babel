@@ -6,6 +6,8 @@ Built upon the latest research insights from Microsoft, Babel employs TypeScript
 
 For its initial iteration, Babel has utilized Claude 2 as a reference implementation, integrating its precision, steerability, and coding capabilities to produce a straightforward, agentic runtime for your functions.
 
+> Note: Babel is not ready for production yet and is intended for research purposes at this stage. We are working on the prerelease and should be out there in the nearest future. If you wish to participate in the development, please open up an issue or contact me via my email [Mike]
+
 ## 🚀 Getting Started
 
 1. Create .env file and set CLAUDE_KEY as an environment variable.
@@ -36,7 +38,6 @@ export const getCurrentLocation = (): Location => {
 Babel leverages the TypeScript compiler to transform your file into TypeScript type definitions (.d.ts).
 
 ```ts
-Copy code
 type Location = {
   lat: number;
   lng: number;

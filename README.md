@@ -36,7 +36,6 @@ export const getCurrentLocation = (): Location => {
 Babel leverages the TypeScript compiler to transform your file into TypeScript type definitions (.d.ts).
 
 ```ts
-Copy code
 type Location = {
   lat: number;
   lng: number;

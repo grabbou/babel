@@ -3,7 +3,8 @@ type Location = {
   lng: number
 }
 
-export const getCurrentLocation = (): Location => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const getLocationForCityName = (city: string): Location => {
   return {
     lat: 37.773972,
     lng: -122.431297,

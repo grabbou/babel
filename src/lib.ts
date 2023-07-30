@@ -30,8 +30,10 @@ export const buildPrompt = (file: FileDef, task: string) => {
     Here is the user task:
     <task>${task}</task>
 
-    Here are TypeScript function definitions of functions you can import from "${filename}":
+    Here are TypeScript function definitions that are available:
     <functions>${functions}</functions>
+
+    You must import them using absolute path "${filename}".
     
     If JSDoc is provided for a function, you must use it to understand what the function does.
     Otherwise, you must use the function type signature (including name and its arguments) to understand what it does.
@@ -47,6 +49,9 @@ export const buildPrompt = (file: FileDef, task: string) => {
     
     If any functions are missing or available functions do not fully satisfy a given step, you must mark that step as a TODO.
     If there are any TODOs in the code, you must include a detailed <error> tag that explains what functionalities are missing.
+
+    If your task is a question, you must return an answer to that question.
+    If your task it to perform an action, you must return a string that describes the result of that action.
 
     Your response must look as follows:
     <response>

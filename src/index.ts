@@ -18,11 +18,18 @@ export default async function run(config: Config) {
 
   if (agent.error) {
     console.log(`Received agent error: ${agent.error}`)
+    console.log(`Code: ${agent.code}`)
     return agent.error
   }
 
   const code = parseCode(agent.code)
-  const result = await runCode(code)
 
-  return result
+  try {
+    const result = await runCode(code)
+    return result
+  } catch (e) {
+    console.log(`Error while running the agent: ${e}`)
+    console.log(`Code: ${agent.code}`)
+    return e
+  }
 }

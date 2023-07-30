@@ -1,13 +1,12 @@
 import Anthropic from '@anthropic-ai/sdk'
 import dedent from 'dedent'
+import { XMLParser } from 'fast-xml-parser'
 import { Project } from 'ts-morph'
 import ts from 'typescript'
 
-type FileDefs = {
-  [key: string]: string
-}
+type FileDef = [string, string]
 
-export const getFileTypeDeclaration = (filePath: string): FileDefs => {
+export const getFileTypeDeclaration = (filePath: string): FileDef => {
   const project = new Project({ compilerOptions: { declaration: true } })
   project.addSourceFileAtPath(filePath)
 
@@ -18,56 +17,52 @@ export const getFileTypeDeclaration = (filePath: string): FileDefs => {
   // We're generating typedefs side by side, so we can safely replace the extension
   const filename = file.filePath.replace('.d.ts', '.ts')
 
-  return {
-    [filename]: file.text,
-  }
+  return [filename, file.text]
 }
 
-export const buildPrompt = (files: FileDefs, question: string) => {
+export const buildPrompt = (file: FileDef, task: string) => {
+  const [filename, functions] = file
+
   return dedent`
     Human:
     You are a service that provides answers to user questions. You have a set of functions that you can call in order to answer user questions.
 
-    Here is the user question:
-    <question>${question}</question>
+    Here is the user task:
+    <task>${task}</task>
 
-    Here are the function definitions you can call, grouped in a file:
-    ${Object.entries(files).map(
-      ([path, content]) => `
-        <file path="${path}">
-          ${content}
-        </file>
-      `
-    )}
+    Here are TypeScript function definitions of functions you can import from "${filename}":
+    <functions>${functions}</functions>
     
-    You must:
-    - Only call the functions provided in the files above.
-    - Return a valid TypeScript file that can be executed.
-    - Import all necessary functions from the files above using absolute paths.
+    If JSDoc is provided for a function, you must use it to understand what the function does.
+    Otherwise, you must use the function type signature (including name and its arguments) to understand what it does.
 
-    Each <file> tag as a "path" attribute that has an absolute path to a file location. When importing necessary functions,
-    you must use exactly that absolute path. You must not use relative paths, as you do not know where your file is executed.
+    If function has multiple choices and user did not specify which one to use, you must use the first one.
     
-    You must include all code in the function that satisfies the following type:
+    In order to complete a given task, you must do the following:
+    1. Analyse the task carefully and break it down into separate steps.
+    2. For each step, import a function from the "${filename}" that can fully satisfy that step.
+    3. Generate a valid TypeScript code that completes the entire task using functions provided.
+    
+    Never import any libraries, functions or types from other files other than the ones provided to you in <functions> tag.
+    
+    If any functions are missing or available functions do not fully satisfy a given step, you must mark that step as a TODO.
+    If there are any TODOs in the code, you must include a detailed <error> tag that explains what functionalities are missing.
+
+    Your response must look as follows:
     <response>
-      function main(): Promise<string>
-    </response
-    where \`string\` is the human-readable answer to the user question.
-
-    You must execute the \`main\` function as a last statement in the file.
-
-    You must not:
-    - Use any other functions, including built-ins, except for the ones provided in the files above.
-    - Define or generate any missing types or structs on the fly.
-
-    If you can't provide a valid TypeScript code that answers the user question, return an empty string.
-    If there is a function that is missing and you can't provide an answer to the user question based on available APIs,
-    return an empty string.
-
-    You must only return the code snippet that will be executed. Do not include anything before or after the code you return.
+      <code><![CDATA[
+        async function main(): Promise<string> {
+          // code
+        }
+        main()
+      ]]></code>
+      <error></error>
+    </response>
+    
+    Do not include anything before or after the <response />.
 
     Assistant:
-    // file: index.ts
+    <response>
   `
 }
 
@@ -79,7 +74,14 @@ export const runCode = async (code: ts.TranspileOutput) => {
   return (await eval(code.outputText)) as Promise<string>
 }
 
-export async function callClaude(prompt: string, apiKey: string) {
+type ClaudeResponse = {
+  code: string
+  error?: string
+}
+
+export async function callClaude(prompt: string, apiKey: string): Promise<ClaudeResponse> {
+  const parser = new XMLParser()
+
   const anthropic = new Anthropic({
     apiKey,
   })
@@ -90,5 +92,12 @@ export async function callClaude(prompt: string, apiKey: string) {
     prompt,
   })
 
-  return response.completion
+  const xml = `<response>${response.completion}`
+
+  const data = parser.parse(xml)
+
+  return {
+    code: data.response.code,
+    error: data.response.error?.length > 0 ? data.response.error : undefined,
+  }
 }

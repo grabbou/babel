@@ -16,7 +16,11 @@ export default async function run(config: Config) {
   const agent = await callClaude(prompt, config.apiKey)
   if (config.debug) console.log(`Received agent code: ${agent}`)
 
-  const code = parseCode(agent)
+  if (agent.error) {
+    return agent.error
+  }
+
+  const code = parseCode(agent.code)
   const result = await runCode(code)
 
   return result

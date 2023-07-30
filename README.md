@@ -19,6 +19,9 @@ $ yarn
 ```bash
 $ yarn tsx example/temperature/index.ts
 ```
+4. Ask it a question! 
+
+> Note: Our default example is best at giving you weather update and sending it over an email (if you want to!)
 
 ## 🧩 Implementation
 

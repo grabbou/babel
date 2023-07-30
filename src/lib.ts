@@ -56,7 +56,10 @@ export const buildPrompt = (file: FileDef, task: string) => {
         main()
       </code>
     </response>
-    This response is invalid, because I am using a function \`callMyLawyer\` that is undefined.
+
+    Human: Why is this response invalid?
+
+    Assistant: This response is invalid, because I am using a function \`callMyLawyer\` that is undefined.
     That function is undefined, because it was not provided in the functions tag and I could not import it.
 
     Human: Thank you. What would be a valid response that does not violate the 1st restriction for the same task?
@@ -86,7 +89,10 @@ export const buildPrompt = (file: FileDef, task: string) => {
         main()
       </code>
     </response>
-    The above response is invalid because I used a random phone number instead of the phone number for the lawyer.
+
+    Human: Why is this response invalid?
+
+    Assistant: The above response is invalid because I used a random phone number instead of the phone number for the lawyer.
     
     Human: Thank you. What would be a valid response that does not violate the 2nd restriction for the same task?
 
@@ -112,8 +118,11 @@ export const buildPrompt = (file: FileDef, task: string) => {
         main()
       </code>
     </response>
-    The above response is invalid because it imports \`callMyLawyer\` from a file that is not available in the runtime.
-    The only file available in the runtime is "${filename}" with functions declared in <functions> tag.
+
+    Human: Why is this response invalid?
+
+    Assistant: The above response is invalid because it imports \`callMyLawyer\` from a file that is not available
+    in the runtime. The only file available in the runtime is "${filename}" with functions declared in <functions> tag.
 
     Human: Thank you. What would be a valid response that does not violate the 3rd restriction for the same task?
 
@@ -142,8 +151,11 @@ export const buildPrompt = (file: FileDef, task: string) => {
         main()
       </code>
     </response>
-    The above response is invalid because I did not completed the task fully. I was only retrieved the phone number, which was
-    the first step. The second step was to call the lawyer, which I did not do due to missing function.
+    
+    Human: Why is this response invalid?
+
+    Assistant: The above response is invalid because I did not completed the task fully. I only retrieved the phone number,
+    which was the first step. The second step was to call the lawyer, which I did not do due to missing function.
 
     Human: Thank you. What would be a valid response that does not violate the 4th restriction for the same task?
 
@@ -168,26 +180,6 @@ export const buildPrompt = (file: FileDef, task: string) => {
         async function main() {
           const day = getCurrentDate().getDay()
           return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day]
-        }
-        main()
-      </code>
-    </response>
-
-    Human: Please now provide an advanced example that *does not violate* the restrictions, for the following:
-    <task>Check the current date and send to claude@anthropic.com</task>
-    <functions>
-      export declare const sendEmail: (to: string, title: string, body: string)
-      export declare const getCurrentDate: () => Date
-    </functions>
-    
-    Assistant:
-    <response>
-      <code>
-        import { getCurrentDate, sendEmail } from "${filename}"
-        async function main() {
-          const date = getCurrentDate()
-          await sendEmail('claude@anthropic.com', 'Current date', date.toString())
-          return 'Email sent successfully.'
         }
         main()
       </code>
